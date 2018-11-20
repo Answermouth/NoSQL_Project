@@ -1,0 +1,31 @@
+MATCH (n)
+DETACH DELETE n
+
+CALL apoc.load.json("file:///C:/Users/Ansel/Desktop/NoSQL/projet/sample_domains.json") YIELD value AS protein
+CREATE (p:Protein {proteinId: protein.code, domains: protein.domains});
+
+
+linking proteins to their domains
+
+MATCH (p1:Protein)
+UNWIND p1.domains as d1
+MERGE (d:Domain {domain: d1})<-[:IN]-(p:Protein {proteinId: p1.proteinId});
+
+
+MATCH p=(p1:Protein)-[r:IN]->()
+WHERE p1.proteinId = 'P31748'
+RETURN p LIMIT 25;
+
+MATCH (n)
+DETACH DELETE n;
+
+CALL apoc.load.json("file:///C:/Users/Ansel/Desktop/NoSQL/projet/sample_labels_domains.json") YIELD value AS protein
+MERGE (p:Protein {proteinId: protein.code})
+WITH protein, p
+UNWIND protein.domains as domain
+MERGE (d:Domain {domain: domain})
+MERGE (p)-[:IN]->(d)
+WITH protein, p
+UNWIND protein.labels as label
+MERGE (l:Label {label: label})
+MERGE (p)-[:Labeled]->(l)
