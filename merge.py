@@ -1,6 +1,6 @@
 import json
 
-def mergefiles(input_filename1, input_filename12, output_filename, array_property_name1, array_property_name2):
+def mergefiles(input_filename1, input_filename2, output_filename, array_property_name1, array_property_name2):
     input_file1 = open(input_filename1, "r")
     input_file2 = open(input_filename2, "r")
 
@@ -21,8 +21,8 @@ def mergefiles(input_filename1, input_filename12, output_filename, array_propert
         for j in range(1, len(split_line1)):
             output_array[i][array_property_name1].append(split_line1[j])
 
-        for j in range(1, len(split_line2)):
-            output_array[i][array_property_name2].append(split_line2[j])
+        for k in range(1, len(split_line2)):
+            output_array[i][array_property_name2].append(split_line2[k])
 
     output_file.write(json.dumps(output_array))
 
@@ -31,4 +31,4 @@ def mergefiles(input_filename1, input_filename12, output_filename, array_propert
     output_file.close()
 
 
-mergefiles("Sample_Labels.txt", "Sample_Domains.txt", "sample_labels_domains.json", "labels", "domains")
+mergefiles("Sample_Labels.txt", "sample_domains.txt", "sample_labels_domains.json", "labels", "domains")
