@@ -28,4 +28,16 @@ MERGE (p)-[:IN]->(d)
 WITH protein, p
 UNWIND protein.labels as label
 MERGE (l:Label {label: label})
-MERGE (p)-[:Labeled]->(l)
+MERGE (p)-[:Labeled]->(l);
+
+____
+MATCH (p1:Protein)-[:IN]->(d1:Domain)
+WITH p1, collect(ID(d1)) AS ids
+SET p1.domainsIDs = ids
+
+MATCH (p1:Protein {proteinId:"Q306W8"}), (p2:Protein {proteinId:"Q9WC28"})
+RETURN p1, p2, algo.similarity.jaccard(p1.domainsIDs, p2.domainsIDs) LIMIT 10
+
+MATCH (p1:Protein), (p2:Protein)
+WHERE p1 <> p2
+RETURN p1, p2, algo.similarity.jaccard(p1.domainsIDs, p2.domainsIDs) LIMIT 100
