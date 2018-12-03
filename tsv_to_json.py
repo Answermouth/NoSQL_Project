@@ -5,7 +5,7 @@ def convert_to_json(input_filename, output_filename, array_property_name):
     input_file = open(input_filename, "r")
     output_file = open(output_filename, "w")
 
-    lines = input_file.readlines()
+    lines1 = input_file.readlines()
 
     output_array = []
 
