@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style>
+    #graph {
+        height: 800px;
+        width: 100%;
+    }
+    .link {
+      stroke: #ccc;
+    }
+    .node { stroke: #222; stroke-width: 1.5px; }    
+    .node.actor { fill: #888; }
+    .node.movie { fill: #BBB; }    
+    .node text {
+      pointer-events: none;
+      font: 10px sans-serif;
+      stroke: #222; 
+      stroke-width: 0px;
+    }
+    
+</style>
+<body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="http://d3js.org/d3.v3.js"></script>
+<!--<script src="d3.v3.js"></script>-->
+<script src="myscript.js"></script>
+<div id="graph">
+</div>

@@ -60,3 +60,44 @@ with [1,2,3] as a1
 with a1 + a2 as all
 unwind all as a
 return collect(distinct a) as unique;
+
+
+OPTIONAL MATCH path = ()-[sim:DOMAIN_LINK]->() WHERE sim.distance >= 0.8
+WITH apoc.coll.toSet([n in nodes(path) WHERE n is not null
+     | { id: id(n),label: labels(n),type:"",metadata: properties(n)  } ]) as nodes,
+
+     apoc.coll.toSet([r in relationships(path) WHERE r is not null
+     | { id: id(r),source: id(startNode(r)),relation: type(r),target: id(endNode(r)), directed: "false"  } ]) as rels
+
+RETURN { graph: { type:"",label: "",directed: "false",nodes: nodes,edges: rels,
+         metadata:{ countNodes: size(nodes),countEdges: size(rels) } } } as graph;
+
+
+MATCH path = (a)-[r:DOMAIN_LINK]->(b) WHERE r.distance >= 0.8
+WITH collect (
+    {
+        source: ID(a),
+        target: ID(b),
+        caption: r.distance
+    }
+) AS edges
+RETURN edges;
+
+
+MATCH path = (a)-[r:DOMAIN_LINK]->(b) WHERE r.distance >= 0.8
+WITH collect(
+	{
+    	id: ID(a),
+        caption: a.proteinId,
+        domains: a.domainsIDs,
+        labels: a.labels
+    }
+) AS nodes,
+collect (
+    {
+        source: ID(a),
+        target: ID(b),
+        caption: r.distance
+    }
+) AS edges
+RETURN {nodes:nodes, edges:edges}; // Way to slow
