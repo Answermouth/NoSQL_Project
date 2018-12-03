@@ -7,7 +7,7 @@ $(document).ready(function() {
     const password = "pwd18";
     const statement = "{\"statements\":[{\"statement\":\"\
         MATCH p=()-[r:DOMAIN_LINK]->()\
-        WHERE r.distance >= 0.6\
+        WHERE r.distance >= 0.8\
         RETURN p LIMIT 500\",\"resultDataContents\":[\"graph\"]}]}";
     
     //const statement = "{\"statements\":[{\"statement\":\"MATCH path = (n)-[r]->(m) RETURN path LIMIT 25\",\"resultDataContents\":[\"graph\"]}]}";
@@ -64,7 +64,7 @@ function createGraph(json) {
             .append("g");        
 
     var force = d3.layout.force()
-        .gravity(0.04)
+        .gravity(0.03)
         .distance(100)
         .charge(-100)
         .size([width, height]);
