@@ -41,3 +41,22 @@ RETURN p1, p2, algo.similarity.jaccard(p1.domainsIDs, p2.domainsIDs) LIMIT 10
 MATCH (p1:Protein), (p2:Protein)
 WHERE p1 <> p2
 RETURN p1, p2, algo.similarity.jaccard(p1.domainsIDs, p2.domainsIDs) LIMIT 100
+
+
+MATCH (p1:Protein), (p2:Protein)
+WHERE p1 <> p2
+AND algo.similarity.jaccard(p1.domainsIDs, p2.domainsIDs)>0
+MERGE (p1)<-[:DOMAIN_LINK {similarity: algo.similarity.jaccard(p1.domainsIDs, p2.domainsIDs)}]->(p2); // very slow
+
+_____
+add label list to protein node at import
+
+MATCH p=()-[r:DOMAIN_LINK]->()
+WHERE r.distance >= 0.8
+RETURN p LIMIT 500
+
+with [1,2,3] as a1
+, [3,4,5] as a2
+with a1 + a2 as all
+unwind all as a
+return collect(distinct a) as unique;
