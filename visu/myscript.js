@@ -1,4 +1,5 @@
 var nodeClicked = false;
+var blues = ["#f7fbff", "#deebf7", "#c6dbf7", "#9ecae1", "#6baed6", "#4292c6", "#2171b5", "#08519c", "#08306b"];
 
 $(document).ready(function() {
     const url = "http://localhost:7474/";
@@ -79,7 +80,10 @@ function createGraph(json) {
     var link = svg.selectAll(".link")
         .data(json.links)
         .enter().append("line")
-        .attr("class", "link");    
+        .attr("class", "link")
+        .attr("stroke", function(d){            
+            return blues[Math.round(d.weight*9-1)];
+        });    
 
     var node = svg.selectAll(".node")
         .data(json.nodes)
@@ -126,7 +130,10 @@ function createGraph(json) {
                'dx':80,
                'dy':0,
                'font-size':10,
-               'fill':'#aaa'});
+               'fill':function(d){            
+                    return blues[Math.round(d.weight*9-1)];
+                }
+            });
 
     edgelabels.append('textPath')
         .attr('xlink:href',function(d,i) {return '#edgepath'+i})
