@@ -38,8 +38,8 @@ def parsing(input_filename, output_filename, array_property_name1, array_propert
             for n in range (len(indices_go_terms)):
                 output_array[i-1][array_property_name3].append(chaine[indices_go_terms[n]+1:indices_go_terms[n]+11])
             if j == len(split_line)-1:
-                if split_line[j] != "":
-                    output_array[i-1][array_property_name2].append(split_line[j])
+                if split_line[j] != "":                    
+                    output_array[i-1][array_property_name2]= split_line[j].split('; ')
 
 
     output_file.write(json.dumps(output_array))

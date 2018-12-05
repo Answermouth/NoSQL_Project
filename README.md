@@ -41,3 +41,20 @@ WHERE p1 <> p2
 AND algo.similarity.jaccard(p1.domainsIDs, p2.domainsIDs)>0
 MERGE (p1)-[:DOMAIN_LINK {similarity: algo.similarity.jaccard(p1.domainsIDs, p2.domainsIDs)}]-(p2);
 ```
+
+
+# Propagate labels
+```
+MATCH (p:Protein)-[r:DOMAIN_LINK]-(target)
+WHERE SIZE(p.labels) = 0
+//AND SIZE(target.labels) > 0
+//AND r.similarity > 0.5
+WITH p, max(r.similarity) as maxi, collect(r) as links, collect(target) as targets
+WITH p, maxi, links, targets, range(0, size(links)) AS idx
+UNWIND idx AS i
+WITH p, maxi, links, targets, i
+WHERE links[i].similarity = maxi
+AND size(targets[i].labels) > 0
+UNWIND targets[i].labels as label
+RETURN p.proteinId, collect(DISTINCT label), collect(DISTINCT SUBSTRING(label,0,1)) LIMIT 20
+```
