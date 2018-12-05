@@ -1,0 +1,25 @@
+CALL apoc.load.json("file:///D:/Documents/TNCY/NoSQL_Project/Clean_Data.json") YIELD value AS protein
+MERGE (p:Protein {
+        proteinId: protein.code, 
+        domains: protein.domains, 
+        labels: protein.EC_numbers, 
+        goTerms: protein.GO_terms, 
+        entryName: protein.Entry_name, 
+        proteinName: protein.Protein_names, 
+        geneName: protein.Gene_names 
+    })
+WITH protein, p
+UNWIND protein.domains as domain
+MERGE (d:Domain {domain: domain})
+MERGE (p)-[:IN]->(d);
+
+MATCH (p1:Protein)-[:IN]->(d1:Domain)
+WITH p1, collect(ID(d1)) AS ids
+SET p1.domainsIDs = ids;
+
+MATCH (p1:Protein)
+WITH p1
+MATCH (p2:Protein)
+WHERE p1 <> p2
+AND algo.similarity.jaccard(p1.domainsIDs, p2.domainsIDs)>0
+MERGE (p1)-[:DOMAIN_LINK {similarity: algo.similarity.jaccard(p1.domainsIDs, p2.domainsIDs)}]-(p2);

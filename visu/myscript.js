@@ -37,8 +37,6 @@ function updateGraph() {
 
     var thresholdSlider = document.getElementById("threshold");
     var limitSlider = document.getElementById("limit");
-    
-
 
     neo4jConnection(null, thresholdSlider.value/100, limitSlider.value);
 }
@@ -49,7 +47,7 @@ function neo4jConnection(proteinID, threshold, limit) {
     const password = "pwd18";
     const statement = "{\"statements\":[{\"statement\":\"\
         MATCH p=()-[r:DOMAIN_LINK]->()\
-        WHERE r.distance >= " + threshold + "\
+        WHERE r.similarity >= " + threshold + "\
         RETURN p LIMIT " + limit + "\",\"resultDataContents\":[\"graph\"]}]}";
     
     $.ajax({
@@ -79,16 +77,29 @@ function convertResults(result) {
     var nodes=[], links=[];
     result.results[0].data.forEach(function (row) {
         row.graph.nodes.forEach(function (n) {            
-            if (idIndex(nodes,n.id) == null) {                                
-                nodes.push({id:n.id,labels:n.properties.labels,title:n.properties.proteinId});
+            if (idIndex(nodes,n.id) == null) {    
+                //console.log(n);
+                nodes.push(
+                    {
+                        id:n.id,
+                        labels: n.properties.labels,
+                        title: n.properties.proteinId,
+                        domains: n.properties.domains,
+                        goTerms: n.properties.goTerms,
+                        proteinName: n.properties.proteinName,
+                        entryName: n.properties.entryName,
+                        geneName: n.properties.geneName
+                    }
+                );
             }
         });        
-        links = links.concat( row.graph.relationships.map(function(r) {            
-            return {source:idIndex(nodes,r.startNode),target:idIndex(nodes,r.endNode),type:r.type,weight:r.properties.distance};
+        links = links.concat( row.graph.relationships.map(function(r) {
+            return {source:idIndex(nodes,r.startNode),target:idIndex(nodes,r.endNode),type:r.type,weight:r.properties.similarity};
         }));
     });
     viz = {nodes:nodes, links:links};
     //labelPropag(viz);
+    console.log(viz);
     createGraph(viz);    
 }
 
@@ -132,8 +143,15 @@ function createGraph(json) {
         .data(json.nodes)
         .enter().append("g")
         .attr("class", "node")
-        .attr("proteinID", function (d) { return d.title })  
+        .attr("proteinID", function (d) { 
+            console.log(d);
+            return d.title })  
         .attr("labels", function (d) { return d.labels })
+        .attr("domains", function (d) { return d.domains })
+        .attr("entryName", function (d) { return d.entryName })
+        .attr("geneName", function (d) { return d.geneName })
+        .attr("goTerms", function (d) { return d.goTerms })
+        .attr("proteinName", function (d) { return d.proteinName })
         .attr("id", function (d) { return "node-"+d.index})
         .call(force.drag);
     
@@ -194,7 +212,7 @@ function createGraph(json) {
     edgelabels.append('textPath')
         .attr('xlink:href',function(d,i) {return '#edgepath'+i})
         .style("pointer-events", "none")
-        .text(function(d,i){            
+        .text(function(d,i){             
             return d.weight.toFixed(2);
         });
 
@@ -234,8 +252,8 @@ function handleShortClickedNode(element) {
     modalBody.innerHTML = "";
 
     for (var i = 0; i < attr.length; i++) {
-        if (unwantedAttributes.indexOf(attr[i].name) < 0) {
-            modalBody.innerHTML += "<strong>" + attr[i].name + "</strong> " + attr[i].value + "<br>";            
+        if (unwantedAttributes.indexOf(attr[i].name) < 0 && attr[i].value.length > 0) {
+            modalBody.innerHTML += "<strong>" + attr[i].name + ":</strong> " + attr[i].value.replace(/,/g, ', ') + "<br>";
         }
     }
 
