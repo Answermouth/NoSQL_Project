@@ -4,6 +4,8 @@ DETACH DELETE n
 CALL apoc.load.json("file:///C:/Users/Ansel/Desktop/NoSQL/projet/sample_domains.json") YIELD value AS protein
 CREATE (p:Protein {proteinId: protein.code, domains: protein.domains});
 
+CALL apoc.load.json("file:///Users/sakina/Desktop/NoSQL_Project/Clean_Data.json") YIELD value AS protein
+CREATE (p:Protein {proteinId: protein.code, domains: protein.domains, labels: protein.EC_numbers, goTerms: protein.GO_terms, entryName: protein.Entry_name, proteinName: protein.Protein_names, geneName: protein.Gene_names });
 
 linking proteins to their domains
 
@@ -25,10 +27,7 @@ WITH protein, p
 UNWIND protein.domains as domain
 MERGE (d:Domain {domain: domain})
 MERGE (p)-[:IN]->(d)
-WITH protein, p
-UNWIND protein.labels as label
-MERGE (l:Label {label: label})
-MERGE (p)-[:Labeled]->(l);
+
 
 ____
 MATCH (p1:Protein)-[:IN]->(d1:Domain)

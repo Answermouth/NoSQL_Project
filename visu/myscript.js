@@ -25,13 +25,13 @@ function sliderHandler() {
 function updateGraph() {
     var thresholdSlider = document.getElementById("threshold");
     var limitSlider = document.getElementById("limit");
-    
+
 }
 
 function neo4jConnection(proteinID, threshold, limit) {
     const url = "http://localhost:7474/";
     const username = "neo4j";
-    const password = "pwd18";
+    const password = "sakina";
     const statement = "{\"statements\":[{\"statement\":\"\
         MATCH p=()-[r:DOMAIN_LINK]->()\
         WHERE r.distance >= " + threshold + "\
