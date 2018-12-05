@@ -1,5 +1,8 @@
 const blues = ["#f7fbff", "#deebf7", "#c6dbf7", "#9ecae1", "#6baed6", "#4292c6", "#2171b5", "#08519c", "#08306b"];
-const unwantedAttributes = ['id', 'class', 'transform', 'proteinID'];
+const nodeColors = color = d3.scale.linear().domain([1,49])
+    .interpolate(d3.interpolateHcl)
+    .range([d3.rgb("#007AFF"), d3.rgb('#FFF500')]);
+const unwantedAttributes = ['id', 'class', 'transform', 'proteinID', 'topLevels'];
 
 var nodeClicked = false, nodeLongClicked = false;
 var sliderEditTimer, nodeClickedTimer;
@@ -28,6 +31,12 @@ function sliderHandler(event) {
     }
 }
 
+function centerOnProtein() {
+    var proteinId = document.getElementById("proteinDetailTitle").innerHTML;
+    document.getElementById("search").value = proteinId;
+    updateGraph();
+}
+
 function updateGraph() {
     getInputFromSliders = true;
     var myNode = document.getElementById("graph");
@@ -35,11 +44,11 @@ function updateGraph() {
         myNode.removeChild(myNode.firstChild);
     }
 
-    var thresholdSlider = document.getElementById("threshold");
-    var limitSlider = document.getElementById("limit");
-    var search = document.getElementById("search");    
+    var threshold = document.getElementById("threshold").value / 100;
+    var limit = document.getElementById("limit").value;    
+    var proteinId = document.getElementById("search").value;
 
-    neo4jConnection(search.value, thresholdSlider.value/100, limitSlider.value);
+    neo4jConnection(proteinId, threshold, limit);
 }
 
 function neo4jConnection(proteinID, threshold, limit) {
@@ -96,7 +105,8 @@ function convertResults(result) {
                         goTerms: n.properties.goTerms,
                         proteinName: n.properties.proteinName,
                         entryName: n.properties.entryName,
-                        geneName: n.properties.geneName
+                        geneName: n.properties.geneName,
+                        topLevels: n.properties.topLevels
                     }
                 );
             }
@@ -158,10 +168,24 @@ function createGraph(json) {
         .attr("geneName", function (d) { return d.geneName })
         .attr("goTerms", function (d) { return d.goTerms })
         .attr("proteinName", function (d) { return d.proteinName })
-        .attr("id", function (d) { return "node-"+d.index})
+        .attr("topLevels", function (d) { return d.topLevels })
+        .attr("id", function (d) { return "node-"+d.index})        
         .call(force.drag);
     
     node.append("circle")
+        .attr("style",function (d) {
+            if (typeof(d.topLevels) != 'undefined') {
+                colorClassString = "";
+                d.topLevels.sort().forEach(topLevel => {
+                    colorClassString += parseInt(topLevel)-1;
+                })
+                var colorClass = parseInt(colorClassString,7);            
+                if (!isNaN(colorClass)) {                
+                    return 'fill: ' + color(colorClass);
+                }
+            }
+            return 'fill: #ccc';
+          })
         .attr("class", function (d) { return "node circle"})
         .attr("id", function (d) { return "circle-"+d.index})
         .attr("r", 10)

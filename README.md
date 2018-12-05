@@ -47,14 +47,60 @@ MERGE (p1)-[:DOMAIN_LINK {similarity: algo.similarity.jaccard(p1.domainsIDs, p2.
 ```
 MATCH (p:Protein)-[r:DOMAIN_LINK]-(target)
 WHERE SIZE(p.labels) = 0
-//AND SIZE(target.labels) > 0
+AND SIZE(target.labels) > 0
 //AND r.similarity > 0.5
 WITH p, max(r.similarity) as maxi, collect(r) as links, collect(target) as targets
 WITH p, maxi, links, targets, range(0, size(links)) AS idx
 UNWIND idx AS i
 WITH p, maxi, links, targets, i
 WHERE links[i].similarity = maxi
-AND size(targets[i].labels) > 0
+AND size(targets[i].labels) > 0 
 UNWIND targets[i].labels as label
-RETURN p.proteinId, collect(DISTINCT label), collect(DISTINCT SUBSTRING(label,0,1)) LIMIT 20
+WITH p, collect(distinct label) AS labels
+SET p.labels = labels
+```
+
+
+# Extras
+To delete all the nodes and relationships run.
+```
+MATCH (n)
+DETACH DELETE n;
+```
+
+To add colors to 'classes' of proteins
+```
+MATCH (p:Protein)
+WHERE SIZE(p.labels) > 0
+UNWIND p.labels as label
+WITH p, ollect(DISTINCT SUBSTRING(label,0,1)) as topLevels
+SET p.topLevels = topLevels;
+```
+```
+MATCH (p:Protein)
+WHERE SIZE(p.labels) = 0
+SET p.topLevels = [];
+```
+
+To propagate colors (usually 4 iterations)
+```
+MATCH (p:Protein)-[r:DOMAIN_LINK]-(target)
+WHERE SIZE(p.topLevels) = 0
+AND SIZE(target.topLevels) > 0
+//AND r.similarity > 0.5
+WITH p, max(r.similarity) as maxi, collect(r) as links, collect(target) as targets
+WITH p, maxi, links, targets, range(0, size(links)) AS idx
+UNWIND idx AS i
+WITH p, maxi, links, targets, i
+WHERE links[i].similarity = maxi
+AND size(targets[i].topLevels) > 0
+UNWIND targets[i].topLevels as topLevel
+WITH p, collect(DISTINCT topLevel) as topLevels
+SET p.topLevels = topLevels
+```
+
+To remove color data
+```
+MATCH (p:Protein)
+REMOVE p.topLevels
 ```
