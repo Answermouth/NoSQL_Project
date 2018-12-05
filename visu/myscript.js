@@ -1,7 +1,7 @@
-var nodeClicked = false;
+var nodeClicked = false, nodeLongClicked = false;
 var blues = ["#f7fbff", "#deebf7", "#c6dbf7", "#9ecae1", "#6baed6", "#4292c6", "#2171b5", "#08519c", "#08306b"];
-var sliderEditTimer;
-
+var sliderEditTimer, nodeClickedTimer;
+var getInputFromSliders = false;
 
 $(document).ready(function() {
     // slider
@@ -9,29 +9,40 @@ $(document).ready(function() {
     var limitSlider = document.getElementById("limit");
 
     // Update the current slider value (each time you drag the slider handle)
-    thresholdSlider.oninput = sliderHandler()
-    limitSlider.oninput = sliderHandler()
-
-    neo4jConnection(null, 0.8, 500);
+    thresholdSlider.oninput = sliderHandler
+    limitSlider.oninput = sliderHandler  
+    updateGraph();
 })
 
-function sliderHandler() {
-    clearTimeout(sliderEditTimer);
-    pressTimer = window.setTimeout(function() {
-        updateGraph();
-    },1000);
+function sliderHandler(event) {
+    var sliderId = event.srcElement.id;
+    var label = document.getElementById(sliderId + "-label");
+    label.innerHTML = event.srcElement.value;    
+    if (getInputFromSliders) { // function was being called 2 times at creation thus creating 2 graphs        
+        clearTimeout(sliderEditTimer);
+        sliderEditTimer = window.setTimeout(function() {            
+            updateGraph();
+        },1000);
+    }
 }
 
 function updateGraph() {
+    getInputFromSliders = true;
+    var myNode = document.getElementById("graph");
+    while (myNode.firstChild) {
+        myNode.removeChild(myNode.firstChild);
+    }
+
     var thresholdSlider = document.getElementById("threshold");
     var limitSlider = document.getElementById("limit");
-
+    
+    neo4jConnection(null, thresholdSlider.value/100, limitSlider.value);
 }
 
 function neo4jConnection(proteinID, threshold, limit) {
     const url = "http://localhost:7474/";
     const username = "neo4j";
-    const password = "sakina";
+    const password = "pwd18";
     const statement = "{\"statements\":[{\"statement\":\"\
         MATCH p=()-[r:DOMAIN_LINK]->()\
         WHERE r.distance >= " + threshold + "\
@@ -71,24 +82,23 @@ function convertResults(result) {
         }));
     });
     viz = {nodes:nodes, links:links};
-    console.log(viz);
     createGraph(viz);    
 }
 
+
 function createGraph(json) {
     var width = window.innerWidth, height = window.innerHeight;
-    console.log(width, height);
-
+    
     var svg = d3.select("#graph")
-            .append("svg")
-            .attr("width", "100%")
-            .attr("height", "100%")                      
-            .call(d3.behavior.zoom().on("zoom", function () {
-                if (nodeClicked == false)
-                    svg.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
-            }))            
-            .append("g");        
-
+        .append("svg")
+        .attr("width", "100%")
+        .attr("height", "100%")                      
+        .call(d3.behavior.zoom().on("zoom", function () {
+            if (nodeClicked == false)
+            svg.attr("transform", "translate(" + d3.event.translate + ")" + " scale(" + d3.event.scale + ")")
+        }))            
+        .append("g");        
+    
     var force = d3.layout.force()
         .gravity(0.03)
         .distance(100)
@@ -98,11 +108,11 @@ function createGraph(json) {
     force.linkDistance(function(link) {
         return 100/link.weight;
     });
-
+    
     force.nodes(json.nodes)
         .links(json.links)
         .start();
-
+    
     var link = svg.selectAll(".link")
         .data(json.links)
         .enter().append("line")
@@ -110,56 +120,67 @@ function createGraph(json) {
         .attr("stroke", function(d){            
             return blues[Math.round(d.weight*9-1)];
         });    
-
+    
     var node = svg.selectAll(".node")
         .data(json.nodes)
         .enter().append("g")
         .attr("class", "node")
+        .attr("id", function (d) { return "node-"+d.index})
         .call(force.drag);
-
+    
     node.append("circle")
-            .attr("class", function (d) { return "node circle" })
-            .attr("r", 10)
-            .on("mousedown", function() {                
-                nodeClicked = true;
-            })
-            .on("mouseup", function() {
-                nodeClicked = false;
-            });
-
+        .attr("class", function (d) { return "node circle"})
+        .attr("id", function (d) { return "circle-"+d.index})
+        .attr("r", 10)
+        .on("mousedown", function() {                                
+            nodeClicked = true;
+            nodeClickedTimer = window.setTimeout(function() {
+                nodeLongClicked = true;
+            },200);                
+        })
+        .on("mouseup", function() {
+            clearTimeout(nodeClickedTimer);
+            if (nodeLongClicked != true) {                        
+                handleShortClickedNode(this);
+            } else {
+                nodeLongClicked = false;
+            }
+            nodeClicked = false;
+        });
+    
     node.append("text")
         .attr("dx", 12)
         .attr("dy", ".35em")
         .text(function(d) { return d.title });
-
-
+    
+    
     var edgepaths = svg.selectAll(".edgepath")
         .data(json.links)
         .enter()
         .append('path')
         .attr({'d': function(d) {return 'M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y},
-            'class':'edgepath',
-            'fill-opacity':0,
-            'stroke-opacity':0,
-            'fill':'blue',
-            'stroke':'red',
-            'id':function(d,i) {return 'edgepath'+i}})
+        'class':'edgepath',
+        'fill-opacity':0,
+        'stroke-opacity':0,
+        'fill':'blue',
+        'stroke':'red',
+        'id':function(d,i) {return 'edgepath'+i}})
         .style("pointer-events", "none");
-
+    
     var edgelabels = svg.selectAll(".edgelabel")
         .data(json.links)
         .enter()
         .append('text')
         .style("pointer-events", "none")
         .attr({'class':'edgelabel',
-               'id':function(d,i){return 'edgelabel'+i},
-               'dx':80,
-               'dy':0,
-               'font-size':10,
-               'fill':function(d){            
-                    return blues[Math.round(d.weight*9-1)];
-                }
-            });
+        'id':function(d,i){return 'edgelabel'+i},
+        'dx':80,
+        'dy':0,
+        'font-size':10,
+        'fill':function(d){            
+            return blues[Math.round(d.weight*9-1)];
+        }
+});
 
     edgelabels.append('textPath')
         .attr('xlink:href',function(d,i) {return '#edgepath'+i})
@@ -170,25 +191,33 @@ function createGraph(json) {
 
     force.on("tick", function() {
         link.attr("x1", function(d) { return d.source.x; })
-            .attr("y1", function(d) { return d.source.y; })
-            .attr("x2", function(d) { return d.target.x; })
-            .attr("y2", function(d) { return d.target.y; });
-
+        .attr("y1", function(d) { return d.source.y; })
+        .attr("x2", function(d) { return d.target.x; })
+        .attr("y2", function(d) { return d.target.y; });
+        
         node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
         
         edgepaths.attr('d', function(d) { var path='M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y;                                           
-                                           return path});       
+        return path});       
 
-        edgelabels.attr('transform',function(d,i){
-            if (d.target.x<d.source.x){
-                bbox = this.getBBox();
-                rx = bbox.x+bbox.width/2;
-                ry = bbox.y+bbox.height/2;
-                return 'rotate(180 '+rx+' '+ry+')';
-                }
-            else {
-                return 'rotate(0)';
-                }
+            edgelabels.attr('transform',function(d,i){
+                if (d.target.x<d.source.x){
+                    bbox = this.getBBox();
+                    rx = bbox.x+bbox.width/2;
+                    ry = bbox.y+bbox.height/2;
+                    return 'rotate(180 '+rx+' '+ry+')';
+                    }
+                else {
+                    return 'rotate(0)';
+                    }
         });
     });
+}
+
+function handleShortClickedNode(element) {
+    var id = element.id.split('-')[1]    
+    var nodeId = "node-"+id;
+    var node = document.getElementById(nodeId);
+    console.log(node);
+    $("#proteinDetail").modal('show');
 }
