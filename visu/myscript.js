@@ -38,6 +38,8 @@ function updateGraph() {
     var thresholdSlider = document.getElementById("threshold");
     var limitSlider = document.getElementById("limit");
     
+
+
     neo4jConnection(null, thresholdSlider.value/100, limitSlider.value);
 }
 
@@ -111,7 +113,7 @@ function createGraph(json) {
         .size([width, height]);
     
     force.linkDistance(function(link) {
-        return 100/link.weight;
+        return 100/Math.sqrt(link.weight);
     });
     
     force.nodes(json.nodes)
