@@ -1,5 +1,7 @@
+const blues = ["#f7fbff", "#deebf7", "#c6dbf7", "#9ecae1", "#6baed6", "#4292c6", "#2171b5", "#08519c", "#08306b"];
+const unwantedAttributes = ['id', 'class', 'transform', 'proteinID'];
+
 var nodeClicked = false, nodeLongClicked = false;
-var blues = ["#f7fbff", "#deebf7", "#c6dbf7", "#9ecae1", "#6baed6", "#4292c6", "#2171b5", "#08519c", "#08306b"];
 var sliderEditTimer, nodeClickedTimer;
 var getInputFromSliders = false;
 
@@ -64,12 +66,14 @@ function neo4jConnection(proteinID, threshold, limit) {
     })   
 }
 
+function idIndex(a,id) {
+    for (var i=0;i<a.length;i++) {
+      if (a[i].id == id) return i;}
+    return null;
+}
+
 function convertResults(result) {
-    function idIndex(a,id) {
-        for (var i=0;i<a.length;i++) {
-          if (a[i].id == id) return i;}
-        return null;
-    }
+    
     var nodes=[], links=[];
     result.results[0].data.forEach(function (row) {
         row.graph.nodes.forEach(function (n) {            
@@ -82,6 +86,7 @@ function convertResults(result) {
         }));
     });
     viz = {nodes:nodes, links:links};
+    //labelPropag(viz);
     createGraph(viz);    
 }
 
@@ -125,6 +130,8 @@ function createGraph(json) {
         .data(json.nodes)
         .enter().append("g")
         .attr("class", "node")
+        .attr("proteinID", function (d) { return d.title })  
+        .attr("labels", function (d) { return d.labels })
         .attr("id", function (d) { return "node-"+d.index})
         .call(force.drag);
     
@@ -218,6 +225,53 @@ function handleShortClickedNode(element) {
     var id = element.id.split('-')[1]    
     var nodeId = "node-"+id;
     var node = document.getElementById(nodeId);
-    console.log(node);
-    $("#proteinDetail").modal('show');
+
+    var attr = node.attributes;    
+    
+    var modalBody = document.getElementById('proteinDetailBody');
+    modalBody.innerHTML = "";
+
+    for (var i = 0; i < attr.length; i++) {
+        if (unwantedAttributes.indexOf(attr[i].name) < 0) {
+            modalBody.innerHTML += "<strong>" + attr[i].name + "</strong> " + attr[i].value + "<br>";            
+        }
+    }
+
+    document.getElementById('proteinDetailTitle').innerHTML = node.getAttribute('proteinID');
+    
+    
+    $("#proteinDetail").modal('show');    
+}
+
+function labelPropag(viz){
+    //isolated proteins?
+    var nodes=viz.nodes, links=viz.links;
+    for (var key in nodes) {  
+        var node = nodes[key];           
+        if (node.labels.length !== null){
+            console.log(node.id+' has no labels.');
+            closestNeighbour = getClosestNeighbour(node, viz);
+            for (label in closestNeighbour.properties.labels){
+                node.properties.labels.push(label);
+            }
+        }
+    }
+}
+
+function getClosestNeighbour(node, viz){
+    neighbours=[];
+    weights=[];
+    for (key in viz.links){
+        var link = viz.links[key];
+        console.log(link);
+        console.log(viz.nodes.indexOf(node));
+        if (link.source == viz.nodes.indexOf(node) ){        
+            weights.concat(link.weight);
+            console.log(weights);
+            neighbours.concat(link.target);
+            console.log(neighbours);
+        }
+    }
+    i = weigths.indexOf(Math.max(...weights));
+    return nodes[neighbours[i]];
 }
