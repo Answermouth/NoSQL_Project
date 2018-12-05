@@ -1,16 +1,41 @@
 var nodeClicked = false;
 var blues = ["#f7fbff", "#deebf7", "#c6dbf7", "#9ecae1", "#6baed6", "#4292c6", "#2171b5", "#08519c", "#08306b"];
+var sliderEditTimer;
+
 
 $(document).ready(function() {
+    // slider
+    var thresholdSlider = document.getElementById("threshold");
+    var limitSlider = document.getElementById("limit");
+
+    // Update the current slider value (each time you drag the slider handle)
+    thresholdSlider.oninput = sliderHandler()
+    limitSlider.oninput = sliderHandler()
+
+    neo4jConnection(null, 0.8, 500);
+})
+
+function sliderHandler() {
+    clearTimeout(sliderEditTimer);
+    pressTimer = window.setTimeout(function() {
+        updateGraph();
+    },1000);
+}
+
+function updateGraph() {
+    var thresholdSlider = document.getElementById("threshold");
+    var limitSlider = document.getElementById("limit");
+    
+}
+
+function neo4jConnection(proteinID, threshold, limit) {
     const url = "http://localhost:7474/";
     const username = "neo4j";
     const password = "pwd18";
     const statement = "{\"statements\":[{\"statement\":\"\
         MATCH p=()-[r:DOMAIN_LINK]->()\
-        WHERE r.distance >= 0.8\
-        RETURN p LIMIT 500\",\"resultDataContents\":[\"graph\"]}]}";
-    
-    //const statement = "{\"statements\":[{\"statement\":\"MATCH path = (n)-[r]->(m) RETURN path LIMIT 25\",\"resultDataContents\":[\"graph\"]}]}";
+        WHERE r.distance >= " + threshold + "\
+        RETURN p LIMIT " + limit + "\",\"resultDataContents\":[\"graph\"]}]}";
     
     $.ajax({
         url: url + "db/data/transaction/commit",
@@ -25,8 +50,8 @@ $(document).ready(function() {
         error: function(error) {
             console.log(`Error ${error}`);
         }  
-    })    
-})
+    })   
+}
 
 function convertResults(result) {
     function idIndex(a,id) {
@@ -51,7 +76,8 @@ function convertResults(result) {
 }
 
 function createGraph(json) {
-    var width = 800, height = 800;
+    var width = window.innerWidth, height = window.innerHeight;
+    console.log(width, height);
 
     var svg = d3.select("#graph")
             .append("svg")
