@@ -42,6 +42,18 @@ AND algo.similarity.jaccard(p1.domainsIDs, p2.domainsIDs)>0
 MERGE (p1)-[:DOMAIN_LINK {similarity: algo.similarity.jaccard(p1.domainsIDs, p2.domainsIDs)}]-(p2);
 ```
 
+# Get data for display
+```
+MATCH p=()-[r:DOMAIN_LINK]->()
+WHERE r.similarity >= 0.8
+RETURN p LIMIT 200
+```
+
+```
+MATCH p=(:Protein {proteinId:'Q6RUV5'})-[r:DOMAIN_LINK]->()
+WHERE r.similarity >= 0.8
+RETURN p LIMIT 200
+```
 
 # Propagate labels
 ```
