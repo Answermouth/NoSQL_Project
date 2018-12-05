@@ -4,11 +4,9 @@ var blues = ["#f7fbff", "#deebf7", "#c6dbf7", "#9ecae1", "#6baed6", "#4292c6", "
 $(document).ready(function() {
     const url = "http://localhost:7474/";
     const username = "neo4j";
-    const password = "pwd18";
+    const password = "sakina";
     const statement = "{\"statements\":[{\"statement\":\"\
-        MATCH p=()-[r:DOMAIN_LINK]->()\
-        WHERE r.distance >= 0.8\
-        RETURN p LIMIT 500\",\"resultDataContents\":[\"graph\"]}]}";
+    MATCH p=()-[r:DOMAIN_LINK]->() RETURN p LIMIT 25\",\"resultDataContents\":[\"graph\"]}]}";
     
     //const statement = "{\"statements\":[{\"statement\":\"MATCH path = (n)-[r]->(m) RETURN path LIMIT 25\",\"resultDataContents\":[\"graph\"]}]}";
     
