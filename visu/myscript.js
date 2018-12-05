@@ -37,18 +37,28 @@ function updateGraph() {
 
     var thresholdSlider = document.getElementById("threshold");
     var limitSlider = document.getElementById("limit");
+    var search = document.getElementById("search");    
 
-    neo4jConnection(null, thresholdSlider.value/100, limitSlider.value);
+    neo4jConnection(search.value, thresholdSlider.value/100, limitSlider.value);
 }
 
 function neo4jConnection(proteinID, threshold, limit) {
     const url = "http://localhost:7474/";
     const username = "neo4j";
     const password = "pwd18";
-    const statement = "{\"statements\":[{\"statement\":\"\
-        MATCH p=()-[r:DOMAIN_LINK]->()\
-        WHERE r.similarity >= " + threshold + "\
-        RETURN p LIMIT " + limit + "\",\"resultDataContents\":[\"graph\"]}]}";
+
+    var query;
+    if (proteinID === null || proteinID === "") {
+        query = "MATCH p=()-[r:DOMAIN_LINK]->() \
+        WHERE r.similarity >= " + threshold + " \
+        RETURN p LIMIT " + limit;
+    } else {
+        query = "MATCH p=(:Protein {proteinId:\'" + proteinID + "\'})-[r:DOMAIN_LINK]->() \
+        WHERE r.similarity >= " + threshold + " \
+        RETURN p LIMIT " + limit;
+    }
+
+    const statement = "{\"statements\":[{\"statement\":\"" + query + "\",\"resultDataContents\":[\"graph\"]}]}";
     
     $.ajax({
         url: url + "db/data/transaction/commit",
@@ -72,13 +82,11 @@ function idIndex(a,id) {
     return null;
 }
 
-function convertResults(result) {
-    
+function convertResults(result) {    
     var nodes=[], links=[];
     result.results[0].data.forEach(function (row) {
         row.graph.nodes.forEach(function (n) {            
-            if (idIndex(nodes,n.id) == null) {    
-                //console.log(n);
+            if (idIndex(nodes,n.id) == null) {                    
                 nodes.push(
                     {
                         id:n.id,
@@ -143,9 +151,7 @@ function createGraph(json) {
         .data(json.nodes)
         .enter().append("g")
         .attr("class", "node")
-        .attr("proteinID", function (d) { 
-            console.log(d);
-            return d.title })  
+        .attr("proteinID", function (d) { return d.title })  
         .attr("labels", function (d) { return d.labels })
         .attr("domains", function (d) { return d.domains })
         .attr("entryName", function (d) { return d.entryName })
