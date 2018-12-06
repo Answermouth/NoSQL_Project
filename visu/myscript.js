@@ -54,7 +54,7 @@ function updateGraph() {
 function neo4jConnection(proteinID, threshold, limit) {
     const url = "http://localhost:7474/";
     const username = "neo4j";
-    const password = "pwd18";
+    const password = "sakina";
 
     var query;
     if (proteinID === null || proteinID === "") {
