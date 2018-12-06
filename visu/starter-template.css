@@ -62,12 +62,18 @@ html, body {
 }
 
 .node .circle {
-stroke: #222; 
-stroke-width: 1.5px;
+  stroke: #222; 
+  stroke-width: 1.5px;
 }
 
 .node text {
-pointer-events: none;
-font: 10px sans-serif;      
-stroke-width: 0px;
+  pointer-events: none;
+  font: 10px sans-serif;      
+  stroke-width: 0px;
+}
+
+footer .container {
+  color: white;
+  margin-right: 0.5rem;
+  margin-bottom: 1rem;  
 }

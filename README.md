@@ -35,9 +35,11 @@ SET p1.domainsIDs = ids;
 Run this command to link the proteins together that have a jaccard similarity higher than 0.
 ```
 MATCH (p1:Protein)
+WHERE SIZE(p1.domainsIDs) > 0
 WITH p1
 MATCH (p2:Protein)
-WHERE p1 <> p2
+WHERE SIZE(p2.domainsIDs) > 0
+AND p1 <> p2
 AND algo.similarity.jaccard(p1.domainsIDs, p2.domainsIDs)>0
 MERGE (p1)-[:DOMAIN_LINK {similarity: algo.similarity.jaccard(p1.domainsIDs, p2.domainsIDs)}]-(p2);
 ```
