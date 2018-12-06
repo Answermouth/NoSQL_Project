@@ -61,6 +61,12 @@ function neo4jConnection(proteinID, threshold, limit) {
         query = "MATCH p=()-[r:DOMAIN_LINK]->() \
         WHERE r.similarity >= " + threshold + " \
         RETURN p LIMIT " + limit;
+    } else if (proteinID === "singles") {
+        query = "MATCH (prot:Protein)\
+        OPTIONAL MATCH p=(prot)-[r:DOMAIN_LINK]-()\
+        WITH prot, p, collect(r) AS links\
+        WHERE SIZE(links) = 0\
+        RETURN prot LIMIT " + limit;                
     } else {
         query = "MATCH p=(:Protein {proteinId:\'" + proteinID + "\'})-[r:DOMAIN_LINK]->() \
         WHERE r.similarity >= " + threshold + " \

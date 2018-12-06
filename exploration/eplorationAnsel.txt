@@ -100,3 +100,9 @@ collect (
     }
 ) AS edges
 RETURN {nodes:nodes, edges:edges}; // Way to slow
+
+MATCH (prot:Protein)
+OPTIONAL MATCH p=(prot)-[r:DOMAIN_LINK]-()
+WITH prot, p, collect(r) AS links
+WHERE SIZE(links) = 0
+RETURN prot LIMIT 10

@@ -54,6 +54,13 @@ MATCH p=(:Protein {proteinId:'Q6RUV5'})-[r:DOMAIN_LINK]->()
 WHERE r.similarity >= 0.8
 RETURN p LIMIT 200
 ```
+```
+MATCH (prot:Protein)
+OPTIONAL MATCH p=(prot)-[r:DOMAIN_LINK]-()
+WITH prot, p, collect(r) AS links
+WHERE SIZE(links) = 0
+RETURN prot LIMIT 10
+```
 
 # Propagate labels
 ```
