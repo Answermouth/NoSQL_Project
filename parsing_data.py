@@ -48,4 +48,5 @@ def parsing(input_filename, output_filename, array_property_name1, array_propert
     output_file.close()
 
 
-parsing("Data.tab", "Clean_Data.json", "domains", "EC_numbers", "GO_terms")
+# parsing("Data.tab", "Clean_Data.json", "domains", "EC_numbers", "GO_terms")
+parsing("uniprot-human-filtered.tab", "Clean_Human_Data.json", "domains", "EC_numbers", "GO_terms")

@@ -106,6 +106,7 @@ function convertResults(result) {
                     {
                         id:n.id,
                         labels: n.properties.labels,
+                        propagLabels: n.properties.propagLabels,
                         title: n.properties.proteinId,
                         domains: n.properties.domains,
                         goTerms: n.properties.goTerms,
@@ -169,6 +170,7 @@ function createGraph(json) {
         .attr("class", "node")
         .attr("proteinID", function (d) { return d.title })  
         .attr("labels", function (d) { return d.labels })
+        .attr("propagLabels", function (d) { return d.propagLabels })
         .attr("domains", function (d) { return d.domains })
         .attr("entryName", function (d) { return d.entryName })
         .attr("geneName", function (d) { return d.geneName })
@@ -236,14 +238,14 @@ function createGraph(json) {
         .append('text')
         .style("pointer-events", "none")
         .attr({'class':'edgelabel',
-        'id':function(d,i){return 'edgelabel'+i},
-        'dx':80,
-        'dy':0,
-        'font-size':10,
-        'fill':function(d){            
-            return blues[Math.ceil(d.weight*9-1)];
-        }
-});
+            'id':function(d,i){return 'edgelabel'+i},
+            'dx':80,
+            'dy':0,
+            'font-size':10,
+            'fill':function(d){            
+                return blues[Math.ceil(d.weight*9-1)];
+            }
+        });
 
     edgelabels.append('textPath')
         .attr('xlink:href',function(d,i) {return '#edgepath'+i})
@@ -303,37 +305,4 @@ function handleShortClickedNode(element) {
     
     
     $("#proteinDetail").modal('show');    
-}
-
-function labelPropag(viz){
-    //isolated proteins?
-    var nodes=viz.nodes, links=viz.links;
-    for (var key in nodes) {  
-        var node = nodes[key];           
-        if (node.labels.length !== null){
-            console.log(node.id+' has no labels.');
-            closestNeighbour = getClosestNeighbour(node, viz);
-            for (label in closestNeighbour.properties.labels){
-                node.properties.labels.push(label);
-            }
-        }
-    }
-}
-
-function getClosestNeighbour(node, viz){
-    neighbours=[];
-    weights=[];
-    for (key in viz.links){
-        var link = viz.links[key];
-        console.log(link);
-        console.log(viz.nodes.indexOf(node));
-        if (link.source == viz.nodes.indexOf(node) ){        
-            weights.concat(link.weight);
-            console.log(weights);
-            neighbours.concat(link.target);
-            console.log(neighbours);
-        }
-    }
-    i = weigths.indexOf(Math.max(...weights));
-    return nodes[neighbours[i]];
 }
