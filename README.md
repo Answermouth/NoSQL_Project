@@ -43,17 +43,21 @@ MERGE (p1)-[:DOMAIN_LINK {similarity: algo.similarity.jaccard(p1.domainsIDs, p2.
 ```
 
 # Get data for display
+Display proteins and there links.
 ```
 MATCH p=()-[r:DOMAIN_LINK]->()
 WHERE r.similarity >= 0.8
 RETURN p LIMIT 200
 ```
 
+Display links from one protein
 ```
 MATCH p=(:Protein {proteinId:'Q6RUV5'})-[r:DOMAIN_LINK]->()
 WHERE r.similarity >= 0.8
 RETURN p LIMIT 200
 ```
+
+Display proteins not linked to any other
 ```
 MATCH (prot:Protein)
 OPTIONAL MATCH p=(prot)-[r:DOMAIN_LINK]-()
