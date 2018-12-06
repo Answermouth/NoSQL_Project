@@ -71,7 +71,7 @@ RETURN prot LIMIT 10
 # Propagate labels
 ```
 MATCH (p:Protein)
-WHERE SIZE(p.labels) != 0
+WHERE SIZE(p.labels) <> 0
 SET p.propagLabels = p.labels;
 ```
 
@@ -93,7 +93,7 @@ SET p.propagLabels = propagLabels
 
 ```
 MATCH (p:Protein)
-WHERE SIZE(p.labels) != 0
+WHERE SIZE(p.labels) <> 0
 DELETE p.propagLabels;
 ```
 
