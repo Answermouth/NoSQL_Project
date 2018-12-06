@@ -68,21 +68,32 @@ RETURN prot LIMIT 10
 
 # Propagate labels
 ```
+MATCH (p:Protein)
+WHERE SIZE(p.labels) != 0
+SET p.propagLabels = p.labels;
+```
+
+```
 MATCH (p:Protein)-[r:DOMAIN_LINK]-(target)
-WHERE SIZE(p.labels) = 0
-AND SIZE(target.labels) > 0
+WHERE SIZE(p.propagLabels) = 0
+AND SIZE(target.propagLabels) > 0
 //AND r.similarity > 0.5
 WITH p, max(r.similarity) as maxi, collect(r) as links, collect(target) as targets
 WITH p, maxi, links, targets, range(0, size(links)) AS idx
 UNWIND idx AS i
 WITH p, maxi, links, targets, i
 WHERE links[i].similarity = maxi
-AND size(targets[i].labels) > 0 
-UNWIND targets[i].labels as label
-WITH p, collect(distinct label) AS labels
-SET p.labels = labels
+AND size(targets[i].propagLabels) > 0 
+UNWIND targets[i].propagLabels as label
+WITH p, collect(distinct label) AS propagLabels
+SET p.propagLabels = propagLabels
 ```
 
+```
+MATCH (p:Protein)
+WHERE SIZE(p.labels) != 0
+DELETE p.propagLabels;
+```
 
 # Extras
 To delete all the nodes and relationships run.
