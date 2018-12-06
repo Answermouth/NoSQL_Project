@@ -96,7 +96,7 @@ To add colors to 'classes' of proteins
 MATCH (p:Protein)
 WHERE SIZE(p.labels) > 0
 UNWIND p.labels as label
-WITH p, ollect(DISTINCT SUBSTRING(label,0,1)) as topLevels
+WITH p, collect(DISTINCT SUBSTRING(label,0,1)) as topLevels
 SET p.topLevels = topLevels;
 ```
 ```
