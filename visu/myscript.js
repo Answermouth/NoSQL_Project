@@ -4,7 +4,7 @@ const nodeColors = color = d3.scale.linear().domain([1,49])
     .range([d3.rgb("#007AFF"), d3.rgb('#FFF500')]);
 const unwantedAttributes = ['id', 'class', 'transform', 'proteinID', 'topLevels'];
 
-var nodeClicked = false, nodeLongClicked = false;
+var nodeClicked = false, nodeLongClicked = false, play = true;
 var sliderEditTimer, nodeClickedTimer;
 var getInputFromSliders = false;
 
@@ -160,7 +160,7 @@ function createGraph(json) {
         .enter().append("line")
         .attr("class", "link")
         .attr("stroke", function(d){            
-            return blues[Math.round(d.weight*9-1)];
+            return blues[Math.ceil(d.weight*9-1)];
         });    
     
     var node = svg.selectAll(".node")
@@ -241,7 +241,7 @@ function createGraph(json) {
         'dy':0,
         'font-size':10,
         'fill':function(d){            
-            return blues[Math.round(d.weight*9-1)];
+            return blues[Math.ceil(d.weight*9-1)];
         }
 });
 
@@ -253,28 +253,34 @@ function createGraph(json) {
         });
 
     force.on("tick", function() {
-        link.attr("x1", function(d) { return d.source.x; })
-        .attr("y1", function(d) { return d.source.y; })
-        .attr("x2", function(d) { return d.target.x; })
-        .attr("y2", function(d) { return d.target.y; });
-        
-        node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
-        
-        edgepaths.attr('d', function(d) { var path='M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y;                                           
-        return path});       
-
-            edgelabels.attr('transform',function(d,i){
-                if (d.target.x<d.source.x){
-                    bbox = this.getBBox();
-                    rx = bbox.x+bbox.width/2;
-                    ry = bbox.y+bbox.height/2;
-                    return 'rotate(180 '+rx+' '+ry+')';
-                    }
-                else {
-                    return 'rotate(0)';
-                    }
-        });
+        if (play) {
+            link.attr("x1", function(d) { return d.source.x; })
+            .attr("y1", function(d) { return d.source.y; })
+            .attr("x2", function(d) { return d.target.x; })
+            .attr("y2", function(d) { return d.target.y; });
+            
+            node.attr("transform", function(d) { return "translate(" + d.x + "," + d.y + ")"; });
+            
+            edgepaths.attr('d', function(d) { var path='M '+d.source.x+' '+d.source.y+' L '+ d.target.x +' '+d.target.y;                                           
+            return path});       
+    
+                edgelabels.attr('transform',function(d,i){
+                    if (d.target.x<d.source.x){
+                        bbox = this.getBBox();
+                        rx = bbox.x+bbox.width/2;
+                        ry = bbox.y+bbox.height/2;
+                        return 'rotate(180 '+rx+' '+ry+')';
+                        }
+                    else {
+                        return 'rotate(0)';
+                        }
+            });
+        }
     });
+}
+
+function togglePlay() {
+    play = !play;
 }
 
 function handleShortClickedNode(element) {
