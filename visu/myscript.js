@@ -4,11 +4,16 @@ const nodeColors = color = d3.scale.linear().domain([1,49])
     .range([d3.rgb("#007AFF"), d3.rgb('#FFF500')]);
 const unwantedAttributes = ['id', 'class', 'transform', 'proteinID', 'topLevels'];
 
+const url = "http://localhost:7474/";
+const username = "neo4j";
+const password = "pwd18";
+
 var nodeClicked = false, nodeLongClicked = false, play = true;
 var sliderEditTimer, nodeClickedTimer;
 var getInputFromSliders = false;
 
 $(document).ready(function() {
+    $('body,html').css("overflow","hidden");
     // slider
     var thresholdSlider = document.getElementById("threshold");
     var limitSlider = document.getElementById("limit");
@@ -52,10 +57,6 @@ function updateGraph() {
 }
 
 function neo4jConnection(proteinID, threshold, limit) {
-    const url = "http://localhost:7474/";
-    const username = "neo4j";
-    const password = "pwd18";
-
     var query;
     if (proteinID === null || proteinID === "") {
         query = "MATCH p=()-[r:DOMAIN_LINK]->() \
