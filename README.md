@@ -71,7 +71,7 @@ RETURN prot LIMIT 10
 # Propagate labels
 ```
 MATCH (p:Protein)
-WHERE SIZE(p.labels) <> 0
+WHERE SIZE(p.labels) != 0
 SET p.propagLabels = p.labels;
 ```
 
@@ -93,7 +93,7 @@ SET p.propagLabels = propagLabels
 
 ```
 MATCH (p:Protein)
-WHERE SIZE(p.labels) <> 0
+WHERE SIZE(p.labels) != 0
 DELETE p.propagLabels;
 ```
 
@@ -140,3 +140,21 @@ To remove color data
 MATCH (p:Protein)
 REMOVE p.topLevels
 ```
+
+To get Number of unlabeled proteins
+```
+MATCH (p:Protein)
+WHERE SIZE(p.labels) = 0
+return count(p)
+```
+
+To get Number of isolated proteins
+```
+
+MATCH (prot:Protein)
+OPTIONAL MATCH p=(prot)-[r:DOMAIN_LINK]-()
+WITH prot, p, collect(r) AS links
+WHERE SIZE(links) = 0
+RETURN count(prot)
+```
+
