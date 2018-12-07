@@ -79,3 +79,7 @@ footer .container {
   padding-right: 2rem;
   margin-bottom: 1rem;  
 }
+
+.form-inline .form-control {
+  width: 7rem;
+}

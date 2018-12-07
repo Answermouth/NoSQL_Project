@@ -307,3 +307,87 @@ function handleShortClickedNode(element) {
     
     $("#proteinDetail").modal('show');    
 }
+
+function propagate() {
+
+    var query1 = "MATCH (p:Protein)-[r:DOMAIN_LINK]-(target) \
+    WHERE SIZE(p.propagLabels) = 0 \
+    AND SIZE(target.propagLabels) > 0 \
+    WITH p, max(r.similarity) as maxi, collect(r) as links, collect(target) as targets \
+    WITH p, maxi, links, targets, range(0, size(links)) AS idx \
+    UNWIND idx AS i \
+    WITH p, maxi, links, targets, i \
+    WHERE links[i].similarity = maxi \
+    AND size(targets[i].propagLabels) > 0 \
+    UNWIND targets[i].propagLabels as label \
+    WITH p, collect(distinct label) AS propagLabels \
+    SET p.propagLabels = propagLabels;"
+
+    var query2 = "MATCH (p:Protein) \
+    WHERE SIZE(p.propagLabels) > 0 \
+    UNWIND p.propagLabels as label \
+    WITH p, collect(DISTINCT SUBSTRING(label,0,1)) as topLevels \
+    SET p.topLevels = topLevels;"
+
+    const statements = "{\"statements\":[{\"statement\":\"" + query1 + "\"}, {\"statement\":\"" + query2 + "\"}]}";
+    //const statements = "{\"statements\":[{\"statement\":\"" + query1 + "\"}]}";
+
+    $.ajax({
+        url: url + "db/data/transaction/commit",
+        type: "POST",
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader ("Authorization", "Basic " + btoa(username + ":" + password))
+        },
+        dataType: "json",
+        data: statements,
+        contentType: "application/json",
+        success: function(r) {
+            console.log(r);
+            updateGraph();
+        },
+        error: function(error) {
+            console.log(`Error ${error}`);
+        }  
+    }) 
+}
+
+function clearPropagatedLabels() {
+    var query1 = "MATCH (p:Protein) \
+        REMOVE p.propagLabels\
+        REMOVE p.topLevels;"
+
+    var query2 = "MATCH (p:Protein)\
+        WHERE SIZE(p.labels) <> 0\
+        SET p.propagLabels = p.labels;"
+
+    var query3 = "MATCH (p:Protein)\
+        WHERE SIZE(p.labels) = 0\
+        SET p.propagLabels = [];"
+
+    var query4 = "MATCH (p:Protein) \
+        WHERE SIZE(p.propagLabels) > 0 \
+        UNWIND p.propagLabels as label \
+        WITH p, collect(DISTINCT SUBSTRING(label,0,1)) as topLevels \
+        SET p.topLevels = topLevels;"
+
+    const statements = "{\"statements\":[{\"statement\":\"" + query1 + "\"}, \
+        {\"statement\":\"" + query2 + "\"}, {\"statement\":\"" + query3 + "\"}, {\"statement\":\"" + query4 + "\"}]}";
+
+    $.ajax({
+        url: url + "db/data/transaction/commit",
+        type: "POST",
+        beforeSend: function(xhr) {
+            xhr.setRequestHeader ("Authorization", "Basic " + btoa(username + ":" + password))
+        },
+        dataType: "json",
+        data: statements,
+        contentType: "application/json",
+        success: function(r) {
+            console.log(r);
+            updateGraph();
+        },
+        error: function(error) {
+            console.log(`Error ${error}`);
+        }  
+    });    
+}

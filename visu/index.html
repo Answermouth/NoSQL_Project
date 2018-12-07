@@ -26,6 +26,12 @@
             <span id="limit-label">200</span>
         </li>        
         <li>
+          <button class="btn btn-outline-success" onclick="propagate()">Propagate</button>
+        </li>
+        <li>
+          <button class="btn btn-outline-success" onclick="clearPropagatedLabels()">Clear labels</button>
+        </li>
+        <li>
           <button class="btn btn-outline-success" onclick="togglePlay()">Pause</button>
         </li>
       </ul>               
@@ -40,7 +46,7 @@
   <footer class="fixed-bottom">
     <div class="container">
       <div class="row">
-        <div class="col-10 text-left">Stat du cul</div>
+        <div class="col-10 text-left">Unlabeled proteins before propagation: 16132 | Unlabeled proteins after propagation: 5484 (2492 isolated) | Isolated proteins: 2634</div>
         <div class="col-2 text-right">&copy; Ansel, Paul, Sakina</div>
       </div>
     </div>  
