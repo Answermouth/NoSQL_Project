@@ -71,9 +71,15 @@ RETURN prot LIMIT 10
 # Propagate labels
 ```
 MATCH (p:Protein)
-WHERE SIZE(p.labels) != 0
+WHERE SIZE(p.labels) <> 0
 SET p.propagLabels = p.labels;
 ```
+```
+MATCH (p:Protein)
+WHERE SIZE(p.labels) = 0
+SET p.propagLabels = [];
+```
+
 
 ```
 MATCH (p:Protein)-[r:DOMAIN_LINK]-(target)
@@ -93,8 +99,8 @@ SET p.propagLabels = propagLabels
 
 ```
 MATCH (p:Protein)
-WHERE SIZE(p.labels) != 0
-DELETE p.propagLabels;
+WHERE SIZE(p.labels) <> 0
+REMOVE p.propagLabels;
 ```
 
 # Extras
@@ -107,14 +113,14 @@ DETACH DELETE n;
 To add colors to 'classes' of proteins
 ```
 MATCH (p:Protein)
-WHERE SIZE(p.labels) > 0
-UNWIND p.labels as label
+WHERE SIZE(p.propagLabels) > 0
+UNWIND p.propagLabels as label
 WITH p, collect(DISTINCT SUBSTRING(label,0,1)) as topLevels
 SET p.topLevels = topLevels;
 ```
 ```
 MATCH (p:Protein)
-WHERE SIZE(p.labels) = 0
+WHERE SIZE(p.propagLabels) = 0
 SET p.topLevels = [];
 ```
 
@@ -141,6 +147,7 @@ MATCH (p:Protein)
 REMOVE p.topLevels
 ```
 
+# Stats
 To get Number of unlabeled proteins
 ```
 MATCH (p:Protein)
@@ -150,7 +157,6 @@ return count(p)
 
 To get Number of isolated proteins
 ```
-
 MATCH (prot:Protein)
 OPTIONAL MATCH p=(prot)-[r:DOMAIN_LINK]-()
 WITH prot, p, collect(r) AS links
